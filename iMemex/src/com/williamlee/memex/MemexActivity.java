@@ -116,9 +116,9 @@ public class MemexActivity extends ListActivity {
     	TextView tags = (TextView) super.findViewById(R.id.txt_tags);
     	String currentTags = tags.getText().toString();
     	if (currentTags.isEmpty())
-    		tags.setText(tags.getText().toString() + newTag);
+    		tags.setText(newTag);
     	else if (currentTags.indexOf(newTag) == -1)
-    		tags.setText(", " + tags.getText().toString() + newTag);
+    		tags.setText(tags.getText().toString() + ", " + newTag);
     }
     
     /** Defines callbacks for service binding, passed to bindService() */
