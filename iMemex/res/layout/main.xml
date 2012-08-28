@@ -15,6 +15,102 @@
     </EditText>
 
     <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_tags"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/txt_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_tags1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dip" >
+
+        <TextView
+            android:id="@+id/txt_tag1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/border"
+            android:padding="3dip"
+			android:clickable="true"
+			android:onClick="onClickTag"
+            android:text="@string/tag_new"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/txt_tag2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/border"
+            android:clickable="true"
+            android:onClick="onClickTag"
+            android:padding="3dip"
+            android:text="@string/tag_keep_using"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/txt_tag3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/border"
+            android:clickable="true"
+            android:onClick="onClickTag"
+            android:padding="3dip"
+            android:text="@string/tag_saying"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/txt_tag4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/border"
+            android:clickable="true"
+            android:onClick="onClickTag"
+            android:padding="3dip"
+            android:text="@string/tag_notes"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/txt_tag5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/border"
+            android:clickable="true"
+            android:onClick="onClickTag"
+            android:padding="3dip"
+            android:text="@string/tag_slang"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_tags2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dip" >
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/layout_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,29 +120,24 @@
 
         <Button
             android:id="@+id/btn_add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="60dip"
+            android:layout_height="40dip"
             android:text="@string/btn_add" />
 
         <Button
             android:id="@+id/btn_load"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="60dip"
+            android:layout_height="40dip"
             android:text="@string/btn_load" />
 
-        <Button
-            android:id="@+id/tmp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Notify" />
-
     </LinearLayout>
-
-    <ListView
-        android:id="@+id/android:list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip" >
-    </ListView>
+    
+	<ListView
+	    android:id="@+id/android:list"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dip"
+        android:background="@drawable/border" >
+	</ListView>
 
 </LinearLayout>

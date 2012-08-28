@@ -157,7 +157,7 @@ public class NotesDbAdapter {
         Cursor mCursor =
             mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT,
             		KEY_TIME}, KEY_ROWID + "=" + rowId, null,
-                    null, null, null, null);
+                    null, null, KEY_TIME + " DESC", null);
         if (mCursor != null) {
             mCursor.moveToFirst();
         }

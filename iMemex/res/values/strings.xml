@@ -6,5 +6,11 @@
     <string name="btn_add">Add</string>
     <string name="btn_load">Load</string>
     <string name="menu_intervals">Intervals</string>
+    <string name="tag_new">New Word</string>
+    <string name="label_tags">"Tags: "</string>
+    <string name="tag_saying">Saying</string>
+    <string name="tag_keep_using">Keep Using</string>
+    <string name="tag_notes">Note</string>
+    <string name="tag_slang">Slang</string>
 
 </resources>

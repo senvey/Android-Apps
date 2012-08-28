@@ -1,15 +1,16 @@
 package com.williamlee.memex;
 
-import java.util.concurrent.TimeUnit;
+import com.williamlee.memex.NotificationService.NotificationBinder;
 
 import android.app.ListActivity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,12 +22,13 @@ import android.widget.Toast;
 
 public class MemexActivity extends ListActivity {
 	
-	private static final int NOTIFICATION_ID = 1;
-	
     private NotesDbAdapter mDbHelper;
     private Cursor mNotesCursor;
     
     private TextView wordsView;
+    
+    private NotificationService mService;
+    private boolean mBound;
     
     /** Called when the activity is first created. */
     @Override
@@ -52,26 +54,39 @@ public class MemexActivity extends ListActivity {
 			@Override
 			public void onClick(View v) {
 				loadWords();
+		        Toast.makeText(getApplication(), "All data loaded!", 1000).show();
 			}
 		});
+    }
+    
+    @Override
+    public void onStart () {
+        super.onStart();
 
-        Button temp = (Button) super.findViewById(R.id.tmp);
-        temp.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				regNotifs();
-			}
-		});
+        // Bind to the service
+        Intent intent = new Intent(this, NotificationService.class);
+        super.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    	Log.d("BeforeNotifService", "onStart" + " " + mBound);
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
     }
     
     private void loadWords() {
         mNotesCursor = mDbHelper.fetchAllNotes();
         super.startManagingCursor(mNotesCursor);
-        String[] from = new String[]{
+        String[] from = new String[] {
         		NotesDbAdapter.KEY_CONTENT,
         		NotesDbAdapter.KEY_TIME
 		};
-        int[] to = new int[]{
+        int[] to = new int[] {
         		R.id.txt_content,
         		R.id.txt_time
 		};
@@ -83,35 +98,45 @@ public class MemexActivity extends ListActivity {
     
     private void addWords() {
         String words = this.wordsView.getText().toString();
-        Toast.makeText(getApplication(), "All data loaded!", 1000).show();
+        
+        if (words.isEmpty())
+        	return;
         
         mDbHelper.createNote(words);
         Toast.makeText(getApplication(), "Text added!", 1000).show();
+
+        if (this.mBound) {
+        	this.mService.setNotification(super.getApplication(), words, Utils.getNotifIntervals());
+        	Log.d("MemexActivity", "Added notifications for word: " + words);
+        }
     }
     
-    private void regNotifs() {
-    	int icon = R.drawable.icon;
-    	CharSequence tickerText = "iMemex";
-    	long when = System.currentTimeMillis();
-    	System.out.println(String.format("%d hour %d min %d sec",
-    			TimeUnit.MILLISECONDS.toHours(when),
-    			TimeUnit.MILLISECONDS.toMinutes(when),
-    			TimeUnit.MILLISECONDS.toSeconds(when)));
-    	
-    	Context context = super.getApplicationContext();
-    	CharSequence contentTitle = "Words reminder";
-    	CharSequence contentText = this.wordsView.getText().toString();
-    	Intent notificationIntent = new Intent(this, WordsDetail.class);
-    	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-    	NotificationManager mNotificationManager =
-    			(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    	for (Long interval : Utils.getNotifIntervals()) {
-	    	Notification notification = new Notification(icon, tickerText, when + interval);
-	    	notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-	    	mNotificationManager.notify(NOTIFICATION_ID + (int) (interval / 1000), notification);
-    	}
+    public void onClickTag(View v) {
+    	String newTag = ((TextView) v).getText().toString();
+    	TextView tags = (TextView) super.findViewById(R.id.txt_tags);
+    	String currentTags = tags.getText().toString();
+    	if (currentTags.isEmpty())
+    		tags.setText(tags.getText().toString() + newTag);
+    	else if (currentTags.indexOf(newTag) == -1)
+    		tags.setText(", " + tags.getText().toString() + newTag);
     }
+    
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                IBinder service) {
+            NotificationBinder binder = (NotificationBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
     
     /********** Menu ***********/
     

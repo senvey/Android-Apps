@@ -19,6 +19,7 @@
             </intent-filter>
         </activity>
         <activity android:name="IntervalList"></activity>
+        <service android:name="NotificationService"></service>
     </application>
 
 </manifest>
