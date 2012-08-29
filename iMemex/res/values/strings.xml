@@ -12,5 +12,7 @@
     <string name="tag_keep_using">Keep Using</string>
     <string name="tag_notes">Note</string>
     <string name="tag_slang">Slang</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_cancel">Cancel</string>
 
 </resources>

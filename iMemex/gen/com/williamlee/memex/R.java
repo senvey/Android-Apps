@@ -17,6 +17,8 @@ public final class R {
     }
     public static final class id {
         public static final int btn_add=0x7f05000d;
+        public static final int btn_cancel=0x7f050013;
+        public static final int btn_delete=0x7f050012;
         public static final int btn_load=0x7f05000e;
         public static final int interval_list_parent=0x7f050000;
         public static final int layout_buttons=0x7f05000c;
@@ -24,24 +26,30 @@ public final class R {
         public static final int layout_tags2=0x7f05000b;
         public static final int linearLayout1=0x7f050002;
         public static final int textView1=0x7f050003;
-        public static final int txt_content=0x7f05000f;
+        public static final int txt_content=0x7f050014;
+        public static final int txt_detail_content=0x7f05000f;
+        public static final int txt_detail_tags=0x7f050010;
+        public static final int txt_detail_time=0x7f050011;
         public static final int txt_tag1=0x7f050006;
         public static final int txt_tag2=0x7f050007;
         public static final int txt_tag3=0x7f050008;
         public static final int txt_tag4=0x7f050009;
         public static final int txt_tag5=0x7f05000a;
         public static final int txt_tags=0x7f050004;
-        public static final int txt_time=0x7f050010;
+        public static final int txt_time=0x7f050015;
         public static final int txt_words=0x7f050001;
     }
     public static final class layout {
         public static final int interval_list=0x7f030000;
         public static final int main=0x7f030001;
-        public static final int word_entry=0x7f030002;
+        public static final int words_detail=0x7f030002;
+        public static final int words_entry=0x7f030003;
     }
     public static final class string {
         public static final int app_name=0x7f040001;
         public static final int btn_add=0x7f040002;
+        public static final int btn_cancel=0x7f04000c;
+        public static final int btn_delete=0x7f04000b;
         public static final int btn_load=0x7f040003;
         public static final int hello=0x7f040000;
         public static final int label_tags=0x7f040006;

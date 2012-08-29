@@ -1,7 +1,5 @@
 package com.williamlee.memex;
 
-import com.williamlee.memex.NotificationService.NotificationBinder;
-
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,16 +14,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.williamlee.memex.NotificationService.NotificationBinder;
+
 public class MemexActivity extends ListActivity {
+
+    private static final int ACTIVITY_DETAIL = 1;
+    private static final String TAG = "Memex.MemexActivity";
 	
     private NotesDbAdapter mDbHelper;
     private Cursor mNotesCursor;
     
     private TextView wordsView;
+	private TextView tagsView;
     
     private NotificationService mService;
     private boolean mBound;
@@ -40,6 +45,7 @@ public class MemexActivity extends ListActivity {
         this.loadWords();
 
         this.wordsView = (TextView) super.findViewById(R.id.txt_words);
+        this.tagsView = (TextView) super.findViewById(R.id.txt_tags);
 
         Button addButton = (Button) super.findViewById(R.id.btn_add);
         addButton.setOnClickListener(new OnClickListener() {
@@ -79,6 +85,45 @@ public class MemexActivity extends ListActivity {
         }
     }
     
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        Cursor c = mNotesCursor;
+        c.moveToPosition(position);
+        Intent i = new Intent(this, WordsDetail.class);
+        i.putExtra(NotesDbAdapter.KEY_ROWID, id);
+        i.putExtra(NotesDbAdapter.KEY_CONTENT, c.getString(
+                c.getColumnIndexOrThrow(NotesDbAdapter.KEY_CONTENT)));
+        i.putExtra(NotesDbAdapter.KEY_TAGS, c.getString(
+                c.getColumnIndexOrThrow(NotesDbAdapter.KEY_TAGS)));
+        i.putExtra(NotesDbAdapter.KEY_TIME, c.getString(
+                c.getColumnIndexOrThrow(NotesDbAdapter.KEY_TIME)));
+        startActivityForResult(i, ACTIVITY_DETAIL);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        Bundle extras = intent.getExtras();
+
+        switch(requestCode) {
+        case ACTIVITY_DETAIL:
+        	if (resultCode == RESULT_FIRST_USER) {
+        		// delete the entry
+                Long mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
+                if (mRowId != null) {
+                    mDbHelper.deleteNote(mRowId);
+                	Log.d(TAG, "Removed words with id " + mRowId);
+    		        Toast.makeText(getApplication(), "Words removed!", 1000).show();
+                }
+        	} else if (resultCode == RESULT_OK) {
+        		// update the entry
+        	}
+            break;
+        }
+        this.loadWords();
+    }
+    
     private void loadWords() {
         mNotesCursor = mDbHelper.fetchAllNotes();
         super.startManagingCursor(mNotesCursor);
@@ -92,33 +137,41 @@ public class MemexActivity extends ListActivity {
 		};
 
         SimpleCursorAdapter notes = 
-        	    new SimpleCursorAdapter(this, R.layout.word_entry, mNotesCursor, from, to);
+        	    new SimpleCursorAdapter(this, R.layout.words_entry, mNotesCursor, from, to);
     	super.setListAdapter(notes);
     }
     
     private void addWords() {
         String words = this.wordsView.getText().toString();
+        String tags = this.tagsView.getText().toString();
         
         if (words.isEmpty())
         	return;
         
-        mDbHelper.createNote(words);
+        Long id = mDbHelper.createNote(words, tags);
+    	Log.d(TAG, String.format("Added new words [%s] with id %s.", words, id));
+    	
+        this.resetUI();
         Toast.makeText(getApplication(), "Text added!", 1000).show();
 
-        if (this.mBound) {
-        	this.mService.setNotification(super.getApplication(), words, Utils.getNotifIntervals());
-        	Log.d("MemexActivity", "Added notifications for word: " + words);
-        }
+//        if (this.mBound) {
+//        	this.mService.setNotification(super.getApplication(), words, Utils.getNotifIntervals());
+//        	Log.d(TAG, "Added notifications for word: " + words);
+//        }
+    }
+    
+    private void resetUI() {
+    	this.wordsView.setText("");
+    	this.tagsView.setText("");
     }
     
     public void onClickTag(View v) {
     	String newTag = ((TextView) v).getText().toString();
-    	TextView tags = (TextView) super.findViewById(R.id.txt_tags);
-    	String currentTags = tags.getText().toString();
+    	String currentTags = tagsView.getText().toString();
     	if (currentTags.isEmpty())
-    		tags.setText(newTag);
+    		tagsView.setText(newTag);
     	else if (currentTags.indexOf(newTag) == -1)
-    		tags.setText(tags.getText().toString() + ", " + newTag);
+    		tagsView.setText(tagsView.getText().toString() + ", " + newTag);
     }
     
     /** Defines callbacks for service binding, passed to bindService() */
@@ -143,7 +196,8 @@ public class MemexActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, Menu.FIRST, 0, R.string.menu_intervals);
+        menu.add(Menu.NONE, Menu.FIRST, 0, R.string.menu_intervals);
+        menu.add(Menu.NONE, Menu.FIRST + 1, 1, "Clean Data");
         return true;
     }
 
@@ -153,6 +207,11 @@ public class MemexActivity extends ListActivity {
         case Menu.FIRST:
         	this.showIntervals();
             return true;
+        case Menu.FIRST + 1:
+        	mDbHelper = mDbHelper.rebuild();
+        	super.setListAdapter(null);
+            return true;
+        
         }
         return super.onMenuItemSelected(featureId, item);
     }

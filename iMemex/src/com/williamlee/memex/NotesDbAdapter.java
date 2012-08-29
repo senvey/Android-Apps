@@ -48,13 +48,15 @@ public class NotesDbAdapter {
     private static final String DATABASE_NAME = "memex";
     private static final String DATABASE_TABLE = "notes";
     private static final int DATABASE_VERSION = 1;
+    
+    private static final String QUERY_LIMIT = "1000";
 
     /**
      * Database creation sql statement
      */
     private static final String DATABASE_CREATE =
         "CREATE TABLE " + DATABASE_TABLE +
-        		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        		" (" + KEY_ROWID + " LONG PRIMARY KEY AUTOINCREMENT, " +
         		KEY_CONTENT + " TEXT NOT NULL, " +
         		KEY_TAGS + " TEXT, " +
         		KEY_TIME + " INTEGER DEFAULT CURRENT_TIMESTAMP);";
@@ -76,6 +78,11 @@ public class NotesDbAdapter {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
+            db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
+            onCreate(db);
+        }
+        
+        public void rebuild(SQLiteDatabase db) {
             db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
             onCreate(db);
         }
@@ -119,9 +126,10 @@ public class NotesDbAdapter {
      * @param content the body of the note
      * @return rowId or -1 if failed
      */
-    public long createNote(String content) {
+    public long createNote(String content, String tags) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_CONTENT, content);
+        initialValues.put(KEY_TAGS, tags);
 
         return mDb.insert(DATABASE_TABLE, null, initialValues);
     }
@@ -142,8 +150,8 @@ public class NotesDbAdapter {
      * @return Cursor over all notes
      */
     public Cursor fetchAllNotes() {
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT,
-        		KEY_TIME}, null, null, null, null, null);
+        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT, KEY_TAGS,
+        		KEY_TIME}, null, null, null, null, KEY_TIME + " DESC", QUERY_LIMIT);
     }
 
     /**
@@ -155,9 +163,8 @@ public class NotesDbAdapter {
      */
     public Cursor fetchNote(long rowId) throws SQLException {
         Cursor mCursor =
-            mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT,
-            		KEY_TIME}, KEY_ROWID + "=" + rowId, null,
-                    null, null, KEY_TIME + " DESC", null);
+            mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT, KEY_TAGS,
+            		KEY_TIME}, KEY_ROWID + "=" + rowId, null, null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
         }
@@ -179,5 +186,10 @@ public class NotesDbAdapter {
         args.put(KEY_CONTENT, content);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+    }
+    
+    public NotesDbAdapter rebuild() {
+        mDbHelper.rebuild(mDb);
+        return this.open();
     }
 }
