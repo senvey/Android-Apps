@@ -1,8 +1,14 @@
 package com.williamlee.memex;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.TimerTask;
+
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
@@ -34,6 +40,7 @@ public class MemexActivity extends ListActivity {
     
     private NotificationService mService;
     private boolean mBound;
+    private HashMap<Long, List<TimerTask>> taskList = new HashMap<Long, List<TimerTask>>();
     
     /** Called when the activity is first created. */
     @Override
@@ -52,6 +59,7 @@ public class MemexActivity extends ListActivity {
 			@Override
 			public void onClick(View v) {
 				addWords();
+		        Toast.makeText(getApplication(), "Words added!", 1000).show();
 			}
 		});
 
@@ -111,7 +119,19 @@ public class MemexActivity extends ListActivity {
         	if (resultCode == RESULT_FIRST_USER) {
         		// delete the entry
                 Long mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
+                
                 if (mRowId != null) {
+                	
+                	// cancel all scheduled notifications
+                	List<TimerTask> notifTasks = this.taskList.remove(mRowId);
+                	for (TimerTask task : notifTasks)
+                		if (task.scheduledExecutionTime() > System.currentTimeMillis()
+                				&& !task.cancel()) {
+                			Log.e(TAG, "Failed to cancel scheduled notifications!");
+            		        Toast.makeText(getApplication(), "Failed to remove words!", 1000).show();
+                			return;
+                		}
+                	
                     mDbHelper.deleteNote(mRowId);
                 	Log.d(TAG, "Removed words with id " + mRowId);
     		        Toast.makeText(getApplication(), "Words removed!", 1000).show();
@@ -152,12 +172,15 @@ public class MemexActivity extends ListActivity {
     	Log.d(TAG, String.format("Added new words [%s] with id %s.", words, id));
     	
         this.resetUI();
-        Toast.makeText(getApplication(), "Text added!", 1000).show();
+        this.loadWords();
 
-//        if (this.mBound) {
-//        	this.mService.setNotification(super.getApplication(), words, Utils.getNotifIntervals());
-//        	Log.d(TAG, "Added notifications for word: " + words);
-//        }
+        if (this.mBound) {
+			List<TimerTask> notifTasks = this.mService.setNotification(
+					super.getApplication(), words, Utils.getNotifIntervals());
+			// TODO: clean up this list after notifications are fired
+			this.taskList.put(id, notifTasks);
+        	Log.d(TAG, "Added notifications for word: " + words);
+        }
     }
     
     private void resetUI() {
@@ -165,13 +188,37 @@ public class MemexActivity extends ListActivity {
     	this.tagsView.setText("");
     }
     
+    /**
+     * Adds new tag or removes it if it has already been included in the tag list.
+     * 
+     * @param v
+     * 		the TextView containing tag text.
+     */
     public void onClickTag(View v) {
     	String newTag = ((TextView) v).getText().toString();
     	String currentTags = tagsView.getText().toString();
-    	if (currentTags.isEmpty())
+    	
+    	if (currentTags.isEmpty()) {
+    		// add the first new tag to empty tag list (without comma)
     		tagsView.setText(newTag);
-    	else if (currentTags.indexOf(newTag) == -1)
-    		tagsView.setText(tagsView.getText().toString() + ", " + newTag);
+    	} else if (currentTags.indexOf(newTag) == -1) {
+    		// the tag is not in the list -- add it (with comma)
+    		tagsView.setText(currentTags + ", " + newTag);
+    	} else {
+    		// the tag is in list -- remove it
+    		if (currentTags.endsWith(newTag)) {
+    			if (currentTags.startsWith(newTag)) {
+    				// the only tag left
+    				tagsView.setText("");
+    			} else {
+    				// remove it as the last tag
+    				tagsView.setText(currentTags.replace(", " + newTag, ""));
+    			}
+    		} else {
+    			// not the last one, no matter it is the first tag or in the middle
+    			tagsView.setText(currentTags.replace(newTag + ", ", ""));
+    		}
+    	}
     }
     
     /** Defines callbacks for service binding, passed to bindService() */
@@ -197,7 +244,7 @@ public class MemexActivity extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.add(Menu.NONE, Menu.FIRST, 0, R.string.menu_intervals);
-        menu.add(Menu.NONE, Menu.FIRST + 1, 1, "Clean Data");
+        menu.add(Menu.NONE, Menu.FIRST + 1, 0, R.string.menu_clean_data);
         return true;
     }
 
@@ -208,12 +255,26 @@ public class MemexActivity extends ListActivity {
         	this.showIntervals();
             return true;
         case Menu.FIRST + 1:
-        	mDbHelper = mDbHelper.rebuild();
-        	super.setListAdapter(null);
+        	new AlertDialog.Builder(this)
+        		.setTitle("Confirmation")
+				.setMessage("Are you sure you want to clean all the data?")
+				.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			        @Override
+			        public void onClick(DialogInterface dialog, int which) {
+			        	cleanData();
+			        }
+			    })
+				.setNegativeButton("No", null)
+				.show();
             return true;
         
         }
         return super.onMenuItemSelected(featureId, item);
+    }
+    
+    private void cleanData() {
+    	mDbHelper = mDbHelper.rebuild();
+    	super.setListAdapter(null);
     }
     
     private void showIntervals() {

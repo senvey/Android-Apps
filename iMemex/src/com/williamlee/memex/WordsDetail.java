@@ -1,6 +1,8 @@
 package com.williamlee.memex;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -11,16 +13,18 @@ import android.widget.TextView;
 public class WordsDetail extends Activity {
 	
 	private Long mRowId;
+	private AlertDialog.Builder alertDialog;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.words_detail);
-//        // TODO: set title
-//		setTitle("");
+		setTitle(R.string.title_words_detail);
         
         this.fillData();
+    	
+		this.alertDialog = new AlertDialog.Builder(this);
         
         Button deleteButton = (Button) super.findViewById(R.id.btn_delete);
         deleteButton.setOnClickListener(this.deleteListener);
@@ -29,7 +33,12 @@ public class WordsDetail extends Activity {
         cancelButton.setOnClickListener(this.cancelListener);
     }
     
-    private void fillData() {
+    @Override
+	public void onBackPressed() {
+		this.cancel();
+	}
+
+	private void fillData() {
     	TextView mContent = (TextView) super.findViewById(R.id.txt_detail_content);
     	TextView mTags = (TextView) super.findViewById(R.id.txt_detail_tags);
     	TextView mTime = (TextView) super.findViewById(R.id.txt_detail_time);
@@ -54,15 +63,25 @@ public class WordsDetail extends Activity {
 
 		@Override
 		public void onClick(View view) {
-	    	Bundle bundle = new Bundle();
-	    	if (mRowId != null) {
-	    	    bundle.putLong(NotesDbAdapter.KEY_ROWID, mRowId);
-	    	}
-	    	
-	    	Intent mIntent = new Intent();
-	    	mIntent.putExtras(bundle);
-	    	setResult(RESULT_FIRST_USER, mIntent);
-	    	finish();
+			alertDialog
+				.setTitle("Confirmation")
+				.setMessage("Are you sure you want to delete this entry?")
+				.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			        @Override
+			        public void onClick(DialogInterface dialog, int which) {
+				    	Bundle bundle = new Bundle();
+				    	if (mRowId != null) {
+				    	    bundle.putLong(NotesDbAdapter.KEY_ROWID, mRowId);
+				    	}
+				    	
+				    	Intent mIntent = new Intent();
+				    	mIntent.putExtras(bundle);
+				    	setResult(RESULT_FIRST_USER, mIntent);
+				    	finish();
+			        }
+			    })
+				.setNegativeButton("No", null)
+				.show();
 		}
     };
     
@@ -70,9 +89,13 @@ public class WordsDetail extends Activity {
 
 		@Override
 		public void onClick(View view) {
-	    	Intent mIntent = new Intent();
-	    	setResult(RESULT_CANCELED, mIntent);
-	    	finish();
+			cancel();
 		}
     };
+    
+    private void cancel() {
+    	Intent mIntent = new Intent();
+    	setResult(RESULT_CANCELED, mIntent);
+    	finish();
+    }
 }

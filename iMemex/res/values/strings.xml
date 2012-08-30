@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="hello">Hello World, MemexActivity!</string>
     <string name="app_name">Memex</string>
+    <string name="title_words_detail">Words Detail</string>
+    
     <string name="btn_add">Add</string>
     <string name="btn_load">Load</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_cancel">Cancel</string>
+    
     <string name="menu_intervals">Intervals</string>
-    <string name="tag_new">New Word</string>
+    <string name="menu_clean_data">Clean Data</string>
+    
     <string name="label_tags">"Tags: "</string>
+    <string name="tag_new">New Word</string>
     <string name="tag_saying">Saying</string>
     <string name="tag_keep_using">Keep Using</string>
     <string name="tag_notes">Note</string>
     <string name="tag_slang">Slang</string>
-    <string name="btn_delete">Delete</string>
-    <string name="btn_cancel">Cancel</string>
 
 </resources>

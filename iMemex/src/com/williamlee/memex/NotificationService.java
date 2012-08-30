@@ -1,5 +1,6 @@
 package com.williamlee.memex;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -12,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 public class NotificationService extends Service {
 	
@@ -29,13 +29,18 @@ public class NotificationService extends Service {
         return this.mBinder;
     }
     
-    public void setNotification(Context context, String words, List<Long> intervals) {
-    	Log.d("NotifService", words + "  " + intervals.get(0));
+    public List<TimerTask> setNotification(Context context, String words,
+    		List<Long> intervals) {
     	Timer t = new Timer();
+    	List<TimerTask> notifTasks = new ArrayList<TimerTask>();
+    	
     	for (Long interval : intervals) {
-        	NotificationTask notif = new NotificationTask(context, words);
-    		t.schedule(notif, interval);
+        	NotificationTask notifTask = new NotificationTask(context, words);
+    		t.schedule(notifTask, interval);
+    		notifTasks.add(notifTask);
     	}
+    	
+    	return notifTasks;
     }
 	
 	public class NotificationBinder extends Binder {
@@ -65,11 +70,9 @@ public class NotificationService extends Service {
 
 	    	NotificationManager mNotificationManager =
 	    			(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-	    	for (Long interval : Utils.getNotifIntervals()) {
-		    	Notification notification = new Notification(icon, tickerText, when + interval);
-		    	notification.setLatestEventInfo(this.context, contentTitle, this.text, contentIntent);
-		    	mNotificationManager.notify(NOTIFICATION_ID + (int) (interval / 1000), notification);
-	    	}
+	    	Notification notification = new Notification(icon, tickerText, when);
+	    	notification.setLatestEventInfo(this.context, contentTitle, this.text, contentIntent);
+	    	mNotificationManager.notify(NOTIFICATION_ID, notification);
 		}
 		
 	}
