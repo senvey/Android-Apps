@@ -34,9 +34,9 @@ under the License.
 			<div data-role="content">
 				<form action="#" method="post">
 					<label for="text-street">Street Name:</label>
-					<input type="text" name="text-street" id="text-street" placeholder="Street Name" value="">
+					<input type="text" name="text_street" id="text-street" placeholder="Street Name" value="">
 					<label for="select-side">Side:</label>
-					<select name="select-side" id="select-side">
+					<select name="select_side" id="select-side">
 						<option value="even">Even</option>
 						<option value="odd">Odd</option>
 					</select>
@@ -47,27 +47,27 @@ under the License.
 								No Parking Date:
 							</legend>
 							<label>
-								<input type="checkbox" name="checkbox-1" id="checkbox-1" class="custom" />
+								<input type="checkbox" name="checkbox_1" id="checkbox-1" class="custom" />
 								Monday</label>
 							<label>
-								<input type="checkbox" name="checkbox-2" id="checkbox-2" class="custom" />
+								<input type="checkbox" name="checkbox_2" id="checkbox-2" class="custom" />
 								Tuesday</label>
 							<label>
-								<input type="checkbox" name="checkbox-3" id="checkbox-3" class="custom" />
+								<input type="checkbox" name="checkbox_3" id="checkbox-3" class="custom" />
 								Wednesday</label>
 							<label>
-								<input type="checkbox" name="checkbox-4" id="checkbox-4" class="custom" />
+								<input type="checkbox" name="checkbox_4" id="checkbox-4" class="custom" />
 								Thursday</label>
 							<label>
-								<input type="checkbox" name="checkbox-5" id="checkbox-5" class="custom" />
+								<input type="checkbox" name="checkbox_5" id="checkbox-5" class="custom" />
 								Friday</label>
 						</fieldset>
 					</div>
 					<label for="slider-begin">Begin:</label>
-					<input type="range" name="slider-begin" id="slider-begin" value="7" min="0" max="23.5" step="0.5" />
+					<input type="range" name="slider_begin" id="slider-begin" value="7" min="0" max="23.5" step="0.5" />
 					<label for="slider-end">end:</label>
-					<input type="range" name="slider-end" id="slider-end" value="10" min="0" max="23.5" step="0.5" />
-					<input type="button" value="Submit" data-theme="c" />
+					<input type="range" name="slider_end" id="slider-end" value="10" min="0" max="23.5" step="0.5" />
+					<input type="button" name="submit" value="Submit" data-theme="b" onclick="fill_data(this.form);">
 				</form>
 			</div>
 		</div>
@@ -92,7 +92,7 @@ under the License.
 			// Populate the database
 			//
 			function initDB(tx) {
-				tx.executeSql('CREATE TABLE IF NOT EXISTS parking_restriction (id LONG PRIMARY KEY AUTOINCREMENT, street TEXT NOT NULL, side TEXT NOT NULL, no_parking_date INT NOT NULL, start TEXT, end TEXT)');
+				tx.executeSql('CREATE TABLE IF NOT EXISTS parking_restriction (id LONG PRIMARY KEY AUTOINCREMENT, street TEXT NOT NULL, side TEXT NOT NULL, no_parking_date INT NOT NULL, start TEXT NOT NULL, end TEXT NOT NULL)');
 				// tx.executeSql('INSERT INTO parking_restr (street) VALUES ("First row")');
 				// tx.executeSql('INSERT INTO parking_restr (street) VALUES ("Second row")');
 			}
@@ -107,6 +107,36 @@ under the License.
 			//
 			function successCB() {
 				alert("success!");
+			}
+			
+			function fill_data(form) {
+				alert('in fill_data');
+				street = form.text_street.value;
+				alert(street);
+				side = form.text_side.value;
+				
+				mon_checked = form.checkbox_1.checked;
+				tue_checked = form.checkbox_2.checked;
+				wed_checked = form.checkbox_3.checked;
+				thu_checked = form.checkbox_4.checked;
+				fri_checked = form.checkbox_5.checked;
+				date = 0;
+				if mon_checked: date |= 1 << 1;
+				if tue_checked: date |= 1 << 2;
+				if wed_checked: date |= 1 << 3;
+				if thu_checked: date |= 1 << 4;
+				if fri_checked: date |= 1 << 5;
+				
+				begin = form.slider_begin.value;
+				end = form.slider_begin.value;
+				
+				var db = window.openDatabase("ParkingInSF", "1.0", "Parking in SF", 2000000);
+				db.transaction(insertDB, errorCB, successCB);
+			}
+			
+			function insertDB(tx) {
+				tx.executeSql('INSERT INTO parking_restr (street, side, no_parking_date, begin, end) VALUES (' +
+					street + ', ' + side + ', ' + date + ', ' + begin + ', ' + end + ')');
 			}
 		</script>
 	</body>
