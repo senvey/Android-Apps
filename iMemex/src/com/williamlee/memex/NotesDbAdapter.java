@@ -56,10 +56,10 @@ public class NotesDbAdapter {
      */
     private static final String DATABASE_CREATE =
         "CREATE TABLE " + DATABASE_TABLE +
-        		" (" + KEY_ROWID + " LONG PRIMARY KEY AUTOINCREMENT, " +
-        		KEY_CONTENT + " TEXT NOT NULL, " +
-        		KEY_TAGS + " TEXT, " +
-        		KEY_TIME + " INTEGER DEFAULT CURRENT_TIMESTAMP);";
+                " (" + KEY_ROWID + " LONG PRIMARY KEY AUTOINCREMENT, " +
+                KEY_CONTENT + " TEXT NOT NULL, " +
+                KEY_TAGS + " TEXT, " +
+                KEY_TIME + " INTEGER DEFAULT CURRENT_TIMESTAMP);";
 
     private final Context mCtx;
 
@@ -151,7 +151,7 @@ public class NotesDbAdapter {
      */
     public Cursor fetchAllNotes() {
         return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT, KEY_TAGS,
-        		KEY_TIME}, null, null, null, null, KEY_TIME + " DESC", QUERY_LIMIT);
+                KEY_TIME}, null, null, null, null, KEY_TIME + " DESC", QUERY_LIMIT);
     }
 
     /**
@@ -164,7 +164,7 @@ public class NotesDbAdapter {
     public Cursor fetchNote(long rowId) throws SQLException {
         Cursor mCursor =
             mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID, KEY_CONTENT, KEY_TAGS,
-            		KEY_TIME}, KEY_ROWID + "=" + rowId, null, null, null, null, null);
+                    KEY_TIME}, KEY_ROWID + "=" + rowId, null, null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
         }

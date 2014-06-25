@@ -31,12 +31,12 @@ public class MemexActivity extends ListActivity {
 
     private static final int ACTIVITY_DETAIL = 1;
     private static final String TAG = "Memex.MemexActivity";
-	
+    
     private NotesDbAdapter mDbHelper;
     private Cursor mNotesCursor;
     
     private TextView wordsView;
-	private TextView tagsView;
+    private TextView tagsView;
     
     private NotificationService mService;
     private boolean mBound;
@@ -56,21 +56,21 @@ public class MemexActivity extends ListActivity {
 
         Button addButton = (Button) super.findViewById(R.id.btn_add);
         addButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				addWords();
-		        Toast.makeText(getApplication(), "Words added!", 1000).show();
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                addWords();
+                Toast.makeText(getApplication(), "Words added!", 1000).show();
+            }
+        });
 
         Button loadButton = (Button) super.findViewById(R.id.btn_load);
         loadButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				loadWords();
-		        Toast.makeText(getApplication(), "All data loaded!", 1000).show();
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                loadWords();
+                Toast.makeText(getApplication(), "All data loaded!", 1000).show();
+            }
+        });
     }
     
     @Override
@@ -80,7 +80,7 @@ public class MemexActivity extends ListActivity {
         // Bind to the service
         Intent intent = new Intent(this, NotificationService.class);
         super.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    	Log.d("BeforeNotifService", "onStart" + " " + mBound);
+        Log.d("BeforeNotifService", "onStart" + " " + mBound);
     }
     
     @Override
@@ -116,29 +116,29 @@ public class MemexActivity extends ListActivity {
 
         switch(requestCode) {
         case ACTIVITY_DETAIL:
-        	if (resultCode == RESULT_FIRST_USER) {
-        		// delete the entry
+            if (resultCode == RESULT_FIRST_USER) {
+                // delete the entry
                 Long mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
                 
                 if (mRowId != null) {
-                	
-                	// cancel all scheduled notifications
-                	List<TimerTask> notifTasks = this.taskList.remove(mRowId);
-                	for (TimerTask task : notifTasks)
-                		if (task.scheduledExecutionTime() > System.currentTimeMillis()
-                				&& !task.cancel()) {
-                			Log.e(TAG, "Failed to cancel scheduled notifications!");
-            		        Toast.makeText(getApplication(), "Failed to remove words!", 1000).show();
-                			return;
-                		}
-                	
+                    
+                    // cancel all scheduled notifications
+                    List<TimerTask> notifTasks = this.taskList.remove(mRowId);
+                    for (TimerTask task : notifTasks)
+                        if (task.scheduledExecutionTime() > System.currentTimeMillis()
+                                && !task.cancel()) {
+                            Log.e(TAG, "Failed to cancel scheduled notifications!");
+                            Toast.makeText(getApplication(), "Failed to remove words!", 1000).show();
+                            return;
+                        }
+                    
                     mDbHelper.deleteNote(mRowId);
-                	Log.d(TAG, "Removed words with id " + mRowId);
-    		        Toast.makeText(getApplication(), "Words removed!", 1000).show();
+                    Log.d(TAG, "Removed words with id " + mRowId);
+                    Toast.makeText(getApplication(), "Words removed!", 1000).show();
                 }
-        	} else if (resultCode == RESULT_OK) {
-        		// update the entry
-        	}
+            } else if (resultCode == RESULT_OK) {
+                // update the entry
+            }
             break;
         }
         this.loadWords();
@@ -148,17 +148,17 @@ public class MemexActivity extends ListActivity {
         mNotesCursor = mDbHelper.fetchAllNotes();
         super.startManagingCursor(mNotesCursor);
         String[] from = new String[] {
-        		NotesDbAdapter.KEY_CONTENT,
-        		NotesDbAdapter.KEY_TIME
-		};
+                NotesDbAdapter.KEY_CONTENT,
+                NotesDbAdapter.KEY_TIME
+        };
         int[] to = new int[] {
-        		R.id.txt_content,
-        		R.id.txt_time
-		};
+                R.id.txt_content,
+                R.id.txt_time
+        };
 
         SimpleCursorAdapter notes = 
-        	    new SimpleCursorAdapter(this, R.layout.words_entry, mNotesCursor, from, to);
-    	super.setListAdapter(notes);
+                new SimpleCursorAdapter(this, R.layout.words_entry, mNotesCursor, from, to);
+        super.setListAdapter(notes);
     }
     
     private void addWords() {
@@ -166,59 +166,59 @@ public class MemexActivity extends ListActivity {
         String tags = this.tagsView.getText().toString();
         
         if (words.isEmpty())
-        	return;
+            return;
         
         Long id = mDbHelper.createNote(words, tags);
-    	Log.d(TAG, String.format("Added new words [%s] with id %s.", words, id));
-    	
+        Log.d(TAG, String.format("Added new words [%s] with id %s.", words, id));
+        
         this.resetUI();
         this.loadWords();
 
         if (this.mBound) {
-			List<TimerTask> notifTasks = this.mService.setNotification(
-					super.getApplication(), words, Utils.getNotifIntervals());
-			// TODO: clean up this list after notifications are fired
-			this.taskList.put(id, notifTasks);
-        	Log.d(TAG, "Added notifications for word: " + words);
+            List<TimerTask> notifTasks = this.mService.setNotification(
+                    super.getApplication(), words, Utils.getNotifIntervals());
+            // TODO: clean up this list after notifications are fired
+            this.taskList.put(id, notifTasks);
+            Log.d(TAG, "Added notifications for word: " + words);
         }
     }
     
     private void resetUI() {
-    	this.wordsView.setText("");
-    	this.tagsView.setText("");
+        this.wordsView.setText("");
+        this.tagsView.setText("");
     }
     
     /**
      * Adds new tag or removes it if it has already been included in the tag list.
      * 
      * @param v
-     * 		the TextView containing tag text.
+     *         the TextView containing tag text.
      */
     public void onClickTag(View v) {
-    	String newTag = ((TextView) v).getText().toString();
-    	String currentTags = tagsView.getText().toString();
-    	
-    	if (currentTags.isEmpty()) {
-    		// add the first new tag to empty tag list (without comma)
-    		tagsView.setText(newTag);
-    	} else if (currentTags.indexOf(newTag) == -1) {
-    		// the tag is not in the list -- add it (with comma)
-    		tagsView.setText(currentTags + ", " + newTag);
-    	} else {
-    		// the tag is in list -- remove it
-    		if (currentTags.endsWith(newTag)) {
-    			if (currentTags.startsWith(newTag)) {
-    				// the only tag left
-    				tagsView.setText("");
-    			} else {
-    				// remove it as the last tag
-    				tagsView.setText(currentTags.replace(", " + newTag, ""));
-    			}
-    		} else {
-    			// not the last one, no matter it is the first tag or in the middle
-    			tagsView.setText(currentTags.replace(newTag + ", ", ""));
-    		}
-    	}
+        String newTag = ((TextView) v).getText().toString();
+        String currentTags = tagsView.getText().toString();
+        
+        if (currentTags.isEmpty()) {
+            // add the first new tag to empty tag list (without comma)
+            tagsView.setText(newTag);
+        } else if (currentTags.indexOf(newTag) == -1) {
+            // the tag is not in the list -- add it (with comma)
+            tagsView.setText(currentTags + ", " + newTag);
+        } else {
+            // the tag is in list -- remove it
+            if (currentTags.endsWith(newTag)) {
+                if (currentTags.startsWith(newTag)) {
+                    // the only tag left
+                    tagsView.setText("");
+                } else {
+                    // remove it as the last tag
+                    tagsView.setText(currentTags.replace(", " + newTag, ""));
+                }
+            } else {
+                // not the last one, no matter it is the first tag or in the middle
+                tagsView.setText(currentTags.replace(newTag + ", ", ""));
+            }
+        }
     }
     
     /** Defines callbacks for service binding, passed to bindService() */
@@ -252,20 +252,20 @@ public class MemexActivity extends ListActivity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch(item.getItemId()) {
         case Menu.FIRST:
-        	this.showIntervals();
+            this.showIntervals();
             return true;
         case Menu.FIRST + 1:
-        	new AlertDialog.Builder(this)
-        		.setTitle("Confirmation")
-				.setMessage("Are you sure you want to clean all the data?")
-				.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			        @Override
-			        public void onClick(DialogInterface dialog, int which) {
-			        	cleanData();
-			        }
-			    })
-				.setNegativeButton("No", null)
-				.show();
+            new AlertDialog.Builder(this)
+                .setTitle("Confirmation")
+                .setMessage("Are you sure you want to clean all the data?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        cleanData();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
             return true;
         
         }
@@ -273,12 +273,12 @@ public class MemexActivity extends ListActivity {
     }
     
     private void cleanData() {
-    	mDbHelper = mDbHelper.rebuild();
-    	super.setListAdapter(null);
+        mDbHelper = mDbHelper.rebuild();
+        super.setListAdapter(null);
     }
     
     private void showIntervals() {
-    	Intent i = new Intent(this, IntervalList.class);
-    	super.startActivity(i);
+        Intent i = new Intent(this, IntervalList.class);
+        super.startActivity(i);
     }
 }
